@@ -17,83 +17,67 @@
 
 package opennlp.tools.ml.maxent.quasinewton;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class QNMinimizerTest {
 
-  @Test
-  public void testQuadraticFunction() {
-    QNMinimizer minimizer = new QNMinimizer();
-    Function f = new QuadraticFunction();
-    double[] x = minimizer.minimize(f);
-    double minValue = f.valueAt(x);
+	public Function mockFunction2() {
+		Function mockInstance = mock(Function.class);
+		when(mockInstance.valueAt(any(double[].class))).thenAnswer((stubInvo) -> {
+			double[] x = stubInvo.getArgument(0);
+			return StrictMath.pow(1 - x[0], 2) + 100 * StrictMath.pow(x[1] - StrictMath.pow(x[0], 2), 2);
+		});
+		when(mockInstance.getDimension()).thenReturn(2);
+		when(mockInstance.gradientAt(any(double[].class))).thenAnswer((stubInvo) -> {
+			double[] x = stubInvo.getArgument(0);
+			double[] g = new double[2];
+			g[0] = -2 * (1 - x[0]) - 400 * (x[1] - StrictMath.pow(x[0], 2)) * x[0];
+			g[1] = 200 * (x[1] - StrictMath.pow(x[0], 2));
+			return g;
+		});
+		return mockInstance;
+	}
 
-    Assert.assertEquals(x[0], 1.0, 1e-5);
-    Assert.assertEquals(x[1], 5.0, 1e-5);
-    Assert.assertEquals(minValue, 10.0, 1e-10);
-  }
+	public Function mockFunction1() {
+		Function mockInstance = mock(Function.class);
+		when(mockInstance.getDimension()).thenReturn(2);
+		when(mockInstance.gradientAt(any(double[].class))).thenAnswer((stubInvo) -> {
+			double[] x = stubInvo.getArgument(0);
+			return new double[] { 2 * (x[0] - 1), 2 * (x[1] - 5) };
+		});
+		when(mockInstance.valueAt(any(double[].class))).thenAnswer((stubInvo) -> {
+			double[] x = stubInvo.getArgument(0);
+			return StrictMath.pow(x[0] - 1, 2) + StrictMath.pow(x[1] - 5, 2) + 10;
+		});
+		return mockInstance;
+	}
 
-  @Test
-  public void testRosenbrockFunction() {
-    QNMinimizer minimizer = new QNMinimizer();
-    Function f = new Rosenbrock();
-    double[] x = minimizer.minimize(f);
-    double minValue = f.valueAt(x);
+	@Test
+	public void testQuadraticFunction() {
+		QNMinimizer minimizer = new QNMinimizer();
+		Function f = mockFunction1();
+		double[] x = minimizer.minimize(f);
+		double minValue = f.valueAt(x);
 
-    Assert.assertEquals(x[0], 1.0, 1e-5);
-    Assert.assertEquals(x[1], 1.0, 1e-5);
-    Assert.assertEquals(minValue, 0, 1e-10);
-  }
+		Assert.assertEquals(x[0], 1.0, 1e-5);
+		Assert.assertEquals(x[1], 5.0, 1e-5);
+		Assert.assertEquals(minValue, 10.0, 1e-10);
+	}
 
-  /**
-   * Quadratic function: f(x,y) = (x-1)^2 + (y-5)^2 + 10
-   */
-  public class QuadraticFunction implements Function {
+	@Test
+	public void testRosenbrockFunction() {
+		QNMinimizer minimizer = new QNMinimizer();
+		Function f = mockFunction2();
+		double[] x = minimizer.minimize(f);
+		double minValue = f.valueAt(x);
 
-    @Override
-    public int getDimension() {
-      return 2;
-    }
-
-    @Override
-    public double valueAt(double[] x) {
-      return StrictMath.pow(x[0] - 1, 2) + StrictMath.pow(x[1] - 5, 2) + 10;
-    }
-
-    @Override
-    public double[] gradientAt(double[] x) {
-      return new double[] { 2 * (x[0] - 1), 2 * (x[1] - 5) };
-    }
-  }
-
-  /**
-   * Rosenbrock function (http://en.wikipedia.org/wiki/Rosenbrock_function)
-   * f(x,y) = (1-x)^2 + 100*(y-x^2)^2
-   * f(x,y) is non-convex and has global minimum at (x,y) = (1,1) where f(x,y) = 0
-   *
-   * f_x = -2*(1-x) - 400*(y-x^2)*x
-   * f_y = 200*(y-x^2)
-   */
-  public class Rosenbrock implements Function {
-
-    @Override
-    public int getDimension() {
-      return 2;
-    }
-
-    @Override
-    public double valueAt(double[] x) {
-      return StrictMath.pow(1 - x[0], 2) + 100 * StrictMath.pow(x[1] - StrictMath.pow(x[0], 2), 2);
-    }
-
-    @Override
-    public double[] gradientAt(double[] x) {
-      double[] g = new double[2];
-      g[0] = -2 * (1 - x[0]) - 400 * (x[1] - StrictMath.pow(x[0], 2)) * x[0];
-      g[1] = 200 * (x[1] - StrictMath.pow(x[0], 2));
-      return g;
-    }
-
-  }
+		Assert.assertEquals(x[0], 1.0, 1e-5);
+		Assert.assertEquals(x[1], 1.0, 1e-5);
+		Assert.assertEquals(minValue, 0, 1e-10);
+	}
 }

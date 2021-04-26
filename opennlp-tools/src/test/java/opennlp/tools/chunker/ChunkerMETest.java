@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import opennlp.tools.formats.ResourceAsStreamFactory;
 import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.util.InputStreamFactory;
 import opennlp.tools.util.InsufficientTrainingDataException;
 import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.PlainTextByLineStream;
@@ -51,100 +52,98 @@ import opennlp.tools.util.TrainingParameters;
  */
 public class ChunkerMETest {
 
-  private Chunker chunker;
+	private Chunker chunker;
 
-  private static String[] toks1 = { "Rockwell", "said", "the", "agreement", "calls", "for",
-      "it", "to", "supply", "200", "additional", "so-called", "shipsets",
-      "for", "the", "planes", "." };
+	private static String[] toks1 = { "Rockwell", "said", "the", "agreement", "calls", "for", "it", "to", "supply",
+			"200", "additional", "so-called", "shipsets", "for", "the", "planes", "." };
 
-  private static String[] tags1 = { "NNP", "VBD", "DT", "NN", "VBZ", "IN", "PRP", "TO", "VB",
-      "CD", "JJ", "JJ", "NNS", "IN", "DT", "NNS", "." };
+	private static String[] tags1 = { "NNP", "VBD", "DT", "NN", "VBZ", "IN", "PRP", "TO", "VB", "CD", "JJ", "JJ", "NNS",
+			"IN", "DT", "NNS", "." };
 
-  private static String[] expect1 = { "B-NP", "B-VP", "B-NP", "I-NP", "B-VP", "B-SBAR",
-      "B-NP", "B-VP", "I-VP", "B-NP", "I-NP", "I-NP", "I-NP", "B-PP", "B-NP",
-      "I-NP", "O" };
+	private static String[] expect1 = { "B-NP", "B-VP", "B-NP", "I-NP", "B-VP", "B-SBAR", "B-NP", "B-VP", "I-VP",
+			"B-NP", "I-NP", "I-NP", "I-NP", "B-PP", "B-NP", "I-NP", "O" };
 
-  @Before
-  public void startup() throws IOException {
-    // train the chunker
+	@Before
+	public void startup() throws IOException {
+		// train the chunker
 
-    ResourceAsStreamFactory in = new ResourceAsStreamFactory(getClass(),
-        "/opennlp/tools/chunker/test.txt");
+		InputStreamFactory in = ResourceAsStreamFactory.mockInputStreamFactory1(getClass(),
+				"/opennlp/tools/chunker/test.txt");
 
-    ObjectStream<ChunkSample> sampleStream = new ChunkSampleStream(
-        new PlainTextByLineStream(in, StandardCharsets.UTF_8));
+		ObjectStream<ChunkSample> sampleStream = new ChunkSampleStream(
+				new PlainTextByLineStream(in, StandardCharsets.UTF_8));
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, 70);
-    params.put(TrainingParameters.CUTOFF_PARAM, 1);
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, 70);
+		params.put(TrainingParameters.CUTOFF_PARAM, 1);
 
-    ChunkerModel chunkerModel = ChunkerME.train("eng", sampleStream, params, new ChunkerFactory());
+		ChunkerModel chunkerModel = ChunkerME.train("eng", sampleStream, params, new ChunkerFactory());
 
-    this.chunker = new ChunkerME(chunkerModel);
-  }
+		this.chunker = new ChunkerME(chunkerModel);
+	}
 
-  @Test
-  public void testChunkAsArray() throws Exception {
+	@Test
+	public void testChunkAsArray() throws Exception {
 
-    String[] preds = chunker.chunk(toks1, tags1);
+		String[] preds = chunker.chunk(toks1, tags1);
 
-    Assert.assertArrayEquals(expect1, preds);
-  }
+		Assert.assertArrayEquals(expect1, preds);
+	}
 
-  @Test
-  public void testChunkAsSpan() throws Exception {
-    Span[] preds = chunker.chunkAsSpans(toks1, tags1);
-    System.out.println(Arrays.toString(preds));
+	@Test
+	public void testChunkAsSpan() throws Exception {
+		Span[] preds = chunker.chunkAsSpans(toks1, tags1);
+		System.out.println(Arrays.toString(preds));
 
-    Assert.assertEquals(10, preds.length);
-    Assert.assertEquals(new Span(0, 1, "NP"), preds[0]);
-    Assert.assertEquals(new Span(1, 2, "VP"), preds[1]);
-    Assert.assertEquals(new Span(2, 4, "NP"), preds[2]);
-    Assert.assertEquals(new Span(4, 5, "VP"), preds[3]);
-    Assert.assertEquals(new Span(5, 6, "SBAR"), preds[4]);
-    Assert.assertEquals(new Span(6, 7, "NP"), preds[5]);
-    Assert.assertEquals(new Span(7, 9, "VP"), preds[6]);
-    Assert.assertEquals(new Span(9, 13, "NP"), preds[7]);
-    Assert.assertEquals(new Span(13, 14, "PP"), preds[8]);
-    Assert.assertEquals(new Span(14, 16, "NP"), preds[9]);
+		Assert.assertEquals(10, preds.length);
+		Assert.assertEquals(new Span(0, 1, "NP"), preds[0]);
+		Assert.assertEquals(new Span(1, 2, "VP"), preds[1]);
+		Assert.assertEquals(new Span(2, 4, "NP"), preds[2]);
+		Assert.assertEquals(new Span(4, 5, "VP"), preds[3]);
+		Assert.assertEquals(new Span(5, 6, "SBAR"), preds[4]);
+		Assert.assertEquals(new Span(6, 7, "NP"), preds[5]);
+		Assert.assertEquals(new Span(7, 9, "VP"), preds[6]);
+		Assert.assertEquals(new Span(9, 13, "NP"), preds[7]);
+		Assert.assertEquals(new Span(13, 14, "PP"), preds[8]);
+		Assert.assertEquals(new Span(14, 16, "NP"), preds[9]);
 
-  }
+	}
 
-  @Test
-  public void testTokenProbArray() throws Exception {
-    Sequence[] preds = chunker.topKSequences(toks1, tags1);
+	@Test
+	public void testTokenProbArray() throws Exception {
+		Sequence[] preds = chunker.topKSequences(toks1, tags1);
 
-    Assert.assertTrue(preds.length > 0);
-    Assert.assertEquals(expect1.length, preds[0].getProbs().length);
-    Assert.assertEquals(Arrays.asList(expect1), preds[0].getOutcomes());
-    Assert.assertNotSame(Arrays.asList(expect1), preds[1].getOutcomes());
-  }
+		Assert.assertTrue(preds.length > 0);
+		Assert.assertEquals(expect1.length, preds[0].getProbs().length);
+		Assert.assertEquals(Arrays.asList(expect1), preds[0].getOutcomes());
+		Assert.assertNotSame(Arrays.asList(expect1), preds[1].getOutcomes());
+	}
 
-  @Test
-  public void testTokenProbMinScore() throws Exception {
-    Sequence[] preds = chunker.topKSequences(toks1, tags1, -5.55);
+	@Test
+	public void testTokenProbMinScore() throws Exception {
+		Sequence[] preds = chunker.topKSequences(toks1, tags1, -5.55);
 
-    Assert.assertEquals(4, preds.length);
-    Assert.assertEquals(expect1.length, preds[0].getProbs().length);
-    Assert.assertEquals(Arrays.asList(expect1), preds[0].getOutcomes());
-    Assert.assertNotSame(Arrays.asList(expect1), preds[1].getOutcomes());
-  }
-  
-  @Test(expected = InsufficientTrainingDataException.class)
-  public void testInsufficientData() throws IOException {
+		Assert.assertEquals(4, preds.length);
+		Assert.assertEquals(expect1.length, preds[0].getProbs().length);
+		Assert.assertEquals(Arrays.asList(expect1), preds[0].getOutcomes());
+		Assert.assertNotSame(Arrays.asList(expect1), preds[1].getOutcomes());
+	}
 
-    ResourceAsStreamFactory in = new ResourceAsStreamFactory(getClass(),
-        "/opennlp/tools/chunker/test-insufficient.txt");
+	@Test(expected = InsufficientTrainingDataException.class)
+	public void testInsufficientData() throws IOException {
 
-    ObjectStream<ChunkSample> sampleStream = new ChunkSampleStream(
-        new PlainTextByLineStream(in, StandardCharsets.UTF_8));
+		InputStreamFactory in = ResourceAsStreamFactory.mockInputStreamFactory1(getClass(),
+				"/opennlp/tools/chunker/test-insufficient.txt");
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, 70);
-    params.put(TrainingParameters.CUTOFF_PARAM, 1);
+		ObjectStream<ChunkSample> sampleStream = new ChunkSampleStream(
+				new PlainTextByLineStream(in, StandardCharsets.UTF_8));
 
-    ChunkerME.train("eng", sampleStream, params, new ChunkerFactory());
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, 70);
+		params.put(TrainingParameters.CUTOFF_PARAM, 1);
 
-  }
+		ChunkerME.train("eng", sampleStream, params, new ChunkerFactory());
+
+	}
 
 }

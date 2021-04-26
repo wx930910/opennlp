@@ -33,49 +33,49 @@ import opennlp.tools.util.PlainTextByLineStream;
 
 public class ADChunkSampleStreamTest {
 
-  private List<ChunkSample> samples = new ArrayList<>();
+	private List<ChunkSample> samples = new ArrayList<>();
 
-  @Test
-  public void testSimpleCount() {
-    Assert.assertEquals(ADParagraphStreamTest.NUM_SENTENCES, samples.size());
-  }
+	@Test
+	public void testSimpleCount() {
+		Assert.assertEquals(ADParagraphStreamTest.NUM_SENTENCES, samples.size());
+	}
 
-  @Test
-  public void testChunks() {
+	@Test
+	public void testChunks() {
 
-    Assert.assertEquals("Inicia", samples.get(0).getSentence()[0]);
-    Assert.assertEquals("v-fin", samples.get(0).getTags()[0]);
-    Assert.assertEquals("B-VP", samples.get(0).getPreds()[0]);
+		Assert.assertEquals("Inicia", samples.get(0).getSentence()[0]);
+		Assert.assertEquals("v-fin", samples.get(0).getTags()[0]);
+		Assert.assertEquals("B-VP", samples.get(0).getPreds()[0]);
 
-    Assert.assertEquals("em", samples.get(0).getSentence()[1]);
-    Assert.assertEquals("prp", samples.get(0).getTags()[1]);
-    Assert.assertEquals("B-PP", samples.get(0).getPreds()[1]);
+		Assert.assertEquals("em", samples.get(0).getSentence()[1]);
+		Assert.assertEquals("prp", samples.get(0).getTags()[1]);
+		Assert.assertEquals("B-PP", samples.get(0).getPreds()[1]);
 
-    Assert.assertEquals("o", samples.get(0).getSentence()[2]);
-    Assert.assertEquals("art", samples.get(0).getTags()[2]);
-    Assert.assertEquals("B-NP", samples.get(0).getPreds()[2]);
+		Assert.assertEquals("o", samples.get(0).getSentence()[2]);
+		Assert.assertEquals("art", samples.get(0).getTags()[2]);
+		Assert.assertEquals("B-NP", samples.get(0).getPreds()[2]);
 
-    Assert.assertEquals("próximo", samples.get(0).getSentence()[3]);
-    Assert.assertEquals("adj", samples.get(0).getTags()[3]);
-    Assert.assertEquals("I-NP", samples.get(0).getPreds()[3]);
+		Assert.assertEquals("próximo", samples.get(0).getSentence()[3]);
+		Assert.assertEquals("adj", samples.get(0).getTags()[3]);
+		Assert.assertEquals("I-NP", samples.get(0).getPreds()[3]);
 
-    Assert.assertEquals("Casas", samples.get(3).getSentence()[0]);
-    Assert.assertEquals("n", samples.get(3).getTags()[0]);
-    Assert.assertEquals("B-NP", samples.get(3).getPreds()[0]);
-  }
+		Assert.assertEquals("Casas", samples.get(3).getSentence()[0]);
+		Assert.assertEquals("n", samples.get(3).getTags()[0]);
+		Assert.assertEquals("B-NP", samples.get(3).getPreds()[0]);
+	}
 
-  @Before
-  public void setup() throws IOException {
-    InputStreamFactory in = new ResourceAsStreamFactory(
-        ADParagraphStreamTest.class, "/opennlp/tools/formats/ad.sample");
+	@Before
+	public void setup() throws IOException {
+		InputStreamFactory in = ResourceAsStreamFactory.mockInputStreamFactory1(ADParagraphStreamTest.class,
+				"/opennlp/tools/formats/ad.sample");
 
-    try (ADChunkSampleStream stream = new ADChunkSampleStream(new PlainTextByLineStream(in,
-            StandardCharsets.UTF_8))) {
-      ChunkSample sample;
-      while ((sample = stream.read()) != null) {
-        samples.add(sample);
-      }
-    }
-  }
+		try (ADChunkSampleStream stream = new ADChunkSampleStream(
+				new PlainTextByLineStream(in, StandardCharsets.UTF_8))) {
+			ChunkSample sample;
+			while ((sample = stream.read()) != null) {
+				samples.add(sample);
+			}
+		}
+	}
 
 }

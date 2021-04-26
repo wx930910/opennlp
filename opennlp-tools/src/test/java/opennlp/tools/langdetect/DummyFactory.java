@@ -17,6 +17,11 @@
 
 package opennlp.tools.langdetect;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,59 +35,53 @@ import opennlp.tools.util.normalizer.CharSequenceNormalizer;
 
 public class DummyFactory extends LanguageDetectorFactory {
 
+	public CharSequenceNormalizer mockCharSequenceNormalizer1() {
+		CharSequenceNormalizer mockInstance = mock(CharSequenceNormalizer.class);
+		when(mockInstance.normalize(any(CharSequence.class))).thenAnswer((stubInvo) -> {
+			CharSequence text = stubInvo.getArgument(0);
+			return text.toString().toUpperCase();
+		});
+		return mockInstance;
+	}
 
-  public DummyFactory() {
-    super();
-  }
+	public DefaultLanguageDetectorContextGenerator mockDefaultLanguageDetectorContextGenerator1(int min, int max,
+			CharSequenceNormalizer... normalizers) {
+		DefaultLanguageDetectorContextGenerator mockInstance = spy(
+				new DefaultLanguageDetectorContextGenerator(min, max, normalizers));
+		doAnswer((stubInvo) -> {
+			CharSequence document = stubInvo.getArgument(0);
+			String[] superContext = (String[]) stubInvo.callRealMethod();
+			List<String> context = new ArrayList(Arrays.asList(superContext));
+			document = mockInstance.normalizer.normalize(document);
+			SimpleTokenizer tokenizer = SimpleTokenizer.INSTANCE;
+			String[] words = tokenizer.tokenize(document.toString());
+			NGramModel tokenNgramModel = new NGramModel();
+			if (words.length > 0) {
+				tokenNgramModel.add(new StringList(words), 1, 3);
+				Iterator tokenNgramIterator = tokenNgramModel.iterator();
+				while (tokenNgramIterator.hasNext()) {
+					StringList tokenList = (StringList) tokenNgramIterator.next();
+					if (tokenList.size() > 0) {
+						context.add("tg=" + tokenList.toString());
+					}
+				}
+			}
+			return context.toArray(new String[context.size()]);
+		}).when(mockInstance).getContext(any(CharSequence.class));
+		return mockInstance;
+	}
 
-  @Override
-  public void init() {
-    super.init();
-  }
+	public DummyFactory() {
+		super();
+	}
 
-  @Override
-  public LanguageDetectorContextGenerator getContextGenerator() {
-    return new DummyFactory.MyContectGenerator(2, 5,
-        new DummyFactory.UpperCaseNormalizer());
-  }
+	@Override
+	public void init() {
+		super.init();
+	}
 
-  public class UpperCaseNormalizer implements CharSequenceNormalizer {
-    @Override
-    public CharSequence normalize(CharSequence text) {
-      return text.toString().toUpperCase();
-    }
-  }
-
-  public class MyContectGenerator extends DefaultLanguageDetectorContextGenerator {
-
-    public MyContectGenerator(int min, int max, CharSequenceNormalizer... normalizers) {
-      super(min, max, normalizers);
-    }
-
-    @Override
-    public String[] getContext(CharSequence document) {
-      String[] superContext = super.getContext(document);
-
-      List<String> context = new ArrayList(Arrays.asList(superContext));
-
-      document = this.normalizer.normalize(document);
-
-      SimpleTokenizer tokenizer = SimpleTokenizer.INSTANCE;
-      String[] words = tokenizer.tokenize(document.toString());
-      NGramModel tokenNgramModel = new NGramModel();
-      if (words.length > 0) {
-        tokenNgramModel.add(new StringList(words), 1, 3);
-        Iterator tokenNgramIterator = tokenNgramModel.iterator();
-
-        while (tokenNgramIterator.hasNext()) {
-          StringList tokenList = (StringList) tokenNgramIterator.next();
-          if (tokenList.size() > 0) {
-            context.add("tg=" + tokenList.toString());
-          }
-        }
-      }
-
-      return context.toArray(new String[context.size()]);
-    }
-  }
+	@Override
+	public LanguageDetectorContextGenerator getContextGenerator() {
+		return mockDefaultLanguageDetectorContextGenerator1(2, 5, mockCharSequenceNormalizer1());
+	}
 }

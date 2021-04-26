@@ -17,6 +17,10 @@
 
 package opennlp.tools.util.featuregen;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,46 +32,39 @@ import opennlp.tools.util.Span;
 
 public class InSpanGeneratorTest {
 
-  static class SimpleSpecificPersonFinder implements TokenNameFinder {
+	public static TokenNameFinder mockTokenNameFinder1(String theName) {
+		String mockFieldVariableTheName;
+		TokenNameFinder mockInstance = mock(TokenNameFinder.class);
+		mockFieldVariableTheName = theName;
+		when(mockInstance.find(any(String[].class))).thenAnswer((stubInvo) -> {
+			String[] tokens = stubInvo.getArgument(0);
+			for (int i = 0; i < tokens.length; i++) {
+				if (mockFieldVariableTheName.equals(tokens[i])) {
+					return new Span[] { new Span(i, i + 1, "person") };
+				}
+			}
+			return new Span[] {};
+		});
+		return mockInstance;
+	}
 
-    private final String theName;
+	@Test
+	public void test() {
 
-    public SimpleSpecificPersonFinder(String theName) {
-      this.theName = theName;
-    }
+		List<String> features = new ArrayList<>();
 
-    @Override
-    public Span[] find(String[] tokens) {
-      for (int i = 0; i < tokens.length; i++) {
-        if (theName.equals(tokens[i])) {
-          return new Span[]{ new Span(i, i + 1, "person") };
-        }
-      }
+		String[] testSentence = new String[] { "Every", "John", "has", "its", "day", "." };
 
-      return new Span[]{};
-    }
+		AdaptiveFeatureGenerator generator = new InSpanGenerator("john",
+				InSpanGeneratorTest.mockTokenNameFinder1("John"));
 
-    @Override
-    public void clearAdaptiveData() {
-    }
-  }
+		generator.createFeatures(features, testSentence, 0, null);
+		Assert.assertEquals(0, features.size());
 
-  @Test
-  public void test() {
-
-    List<String> features = new ArrayList<>();
-
-    String[] testSentence = new String[]{ "Every", "John", "has", "its", "day", "." };
-
-    AdaptiveFeatureGenerator generator = new InSpanGenerator("john", new SimpleSpecificPersonFinder("John"));
-
-    generator.createFeatures(features, testSentence, 0, null);
-    Assert.assertEquals(0, features.size());
-
-    features.clear();
-    generator.createFeatures(features, testSentence, 1, null);
-    Assert.assertEquals(2, features.size());
-    Assert.assertEquals("john:w=dic", features.get(0));
-    Assert.assertEquals("john:w=dic=John", features.get(1));
-  }
+		features.clear();
+		generator.createFeatures(features, testSentence, 1, null);
+		Assert.assertEquals(2, features.size());
+		Assert.assertEquals("john:w=dic", features.get(0));
+		Assert.assertEquals("john:w=dic=John", features.get(1));
+	}
 }

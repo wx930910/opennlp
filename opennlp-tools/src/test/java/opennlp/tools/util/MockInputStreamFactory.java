@@ -17,43 +17,56 @@
 
 package opennlp.tools.util;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class MockInputStreamFactory implements InputStreamFactory {
+public class MockInputStreamFactory {
 
-  private final File inputSourceFile;
-  private final String inputSourceStr;
-  private final Charset charset;
+	public static InputStreamFactory mockInputStreamFactory1(String str) throws IOException {
+		File mockFieldVariableInputSourceFile;
+		String mockFieldVariableInputSourceStr;
+		Charset mockFieldVariableCharset;
+		InputStreamFactory mockInstance = mock(InputStreamFactory.class);
+		mockFieldVariableInputSourceFile = null;
+		mockFieldVariableInputSourceStr = str;
+		mockFieldVariableCharset = StandardCharsets.UTF_8;
+		when(mockInstance.createInputStream()).thenAnswer((stubInvo) -> {
+			if (mockFieldVariableInputSourceFile != null) {
+				return mockInstance.getClass().getClassLoader()
+						.getResourceAsStream(mockFieldVariableInputSourceFile.getPath());
+			} else {
+				return new ByteArrayInputStream(mockFieldVariableInputSourceStr.getBytes(mockFieldVariableCharset));
+			}
+		});
+		return mockInstance;
+	}
 
-  public MockInputStreamFactory(File file) {
-    this.inputSourceFile = file;
-    this.inputSourceStr = null;
-    this.charset = null;
-  }
-
-  public MockInputStreamFactory(String str) {
-    this(str, StandardCharsets.UTF_8);
-  }
-
-  public MockInputStreamFactory(String str, Charset charset) {
-    this.inputSourceFile = null;
-    this.inputSourceStr = str;
-    this.charset = charset;
-  }
-
-  @Override
-  public InputStream createInputStream() throws IOException {
-    if (inputSourceFile != null) {
-      return getClass().getClassLoader().getResourceAsStream(inputSourceFile.getPath());
-    }
-    else {
-      return new ByteArrayInputStream(inputSourceStr.getBytes(charset));
-    }
-  }
+	public static InputStreamFactory mockInputStreamFactory2(File file) {
+		File mockFieldVariableInputSourceFile;
+		String mockFieldVariableInputSourceStr;
+		Charset mockFieldVariableCharset;
+		InputStreamFactory mockInstance = mock(InputStreamFactory.class);
+		mockFieldVariableInputSourceFile = file;
+		mockFieldVariableInputSourceStr = null;
+		mockFieldVariableCharset = null;
+		try {
+			when(mockInstance.createInputStream()).thenAnswer((stubInvo) -> {
+				if (mockFieldVariableInputSourceFile != null) {
+					return mockInstance.getClass().getClassLoader()
+							.getResourceAsStream(mockFieldVariableInputSourceFile.getPath());
+				} else {
+					return new ByteArrayInputStream(mockFieldVariableInputSourceStr.getBytes(mockFieldVariableCharset));
+				}
+			});
+		} catch (Throwable exception) {
+			exception.printStackTrace();
+		}
+		return mockInstance;
+	}
 }

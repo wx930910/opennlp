@@ -17,7 +17,6 @@
 
 package opennlp.tools.formats.conllu;
 
-
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -30,20 +29,19 @@ import opennlp.tools.util.ObjectStream;
 
 public class ConlluLemmaSampleStreamTest {
 
+	@Test
+	public void testParseSpanishS300() throws IOException {
+		InputStreamFactory streamFactory = ResourceAsStreamFactory.mockInputStreamFactory1(ConlluStreamTest.class,
+				"es-ud-sample.conllu");
 
-  @Test
-  public void testParseSpanishS300() throws IOException {
-    InputStreamFactory streamFactory =
-        new ResourceAsStreamFactory(ConlluStreamTest.class, "es-ud-sample.conllu");
+		try (ObjectStream<LemmaSample> stream = new ConlluLemmaSampleStream(new ConlluStream(streamFactory),
+				ConlluTagset.U)) {
 
-    try (ObjectStream<LemmaSample> stream = new ConlluLemmaSampleStream(
-        new ConlluStream(streamFactory), ConlluTagset.U)) {
-
-      LemmaSample predicted = stream.read();
-      System.out.println(predicted);
-      Assert.assertEquals("digám+tú+él", predicted.getLemmas()[0]);
-      Assert.assertEquals("la", predicted.getTokens()[3]);
-      Assert.assertEquals("el", predicted.getLemmas()[3]);
-    }
-  }
+			LemmaSample predicted = stream.read();
+			System.out.println(predicted);
+			Assert.assertEquals("digám+tú+él", predicted.getLemmas()[0]);
+			Assert.assertEquals("la", predicted.getTokens()[3]);
+			Assert.assertEquals("el", predicted.getLemmas()[3]);
+		}
+	}
 }

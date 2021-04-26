@@ -17,6 +17,10 @@
 
 package opennlp.tools.sentdetect;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 
@@ -25,59 +29,46 @@ import org.junit.Test;
 
 import opennlp.tools.cmdline.sentdetect.SentenceEvaluationErrorListener;
 import opennlp.tools.util.InvalidFormatException;
-import opennlp.tools.util.Span;
 
 public class SentenceDetectorEvaluatorTest {
 
-  @Test
-  public void testPositive() throws InvalidFormatException {
-    OutputStream stream = new ByteArrayOutputStream();
-    SentenceDetectorEvaluationMonitor listener = new SentenceEvaluationErrorListener(stream);
+	public SentenceDetector mockSentenceDetector1(SentenceSample sample) {
+		SentenceSample mockFieldVariableSample;
+		SentenceDetector mockInstance = mock(SentenceDetector.class);
+		mockFieldVariableSample = sample;
+		when(mockInstance.sentPosDetect(any(String.class))).thenAnswer((stubInvo) -> {
+			return mockFieldVariableSample.getSentences();
+		});
+		return mockInstance;
+	}
 
-    SentenceDetectorEvaluator eval = new SentenceDetectorEvaluator(new DummySD(
-        SentenceSampleTest.createGoldSample()), listener);
+	@Test
+	public void testPositive() throws InvalidFormatException {
+		OutputStream stream = new ByteArrayOutputStream();
+		SentenceDetectorEvaluationMonitor listener = new SentenceEvaluationErrorListener(stream);
 
-    eval.evaluateSample(SentenceSampleTest.createGoldSample());
+		SentenceDetectorEvaluator eval = new SentenceDetectorEvaluator(
+				mockSentenceDetector1(SentenceSampleTest.createGoldSample()), listener);
 
-    Assert.assertEquals(1.0, eval.getFMeasure().getFMeasure(), 0.0);
+		eval.evaluateSample(SentenceSampleTest.createGoldSample());
 
-    Assert.assertEquals(0, stream.toString().length());
-  }
+		Assert.assertEquals(1.0, eval.getFMeasure().getFMeasure(), 0.0);
 
-  @Test
-  public void testNegative() throws InvalidFormatException {
-    OutputStream stream = new ByteArrayOutputStream();
-    SentenceDetectorEvaluationMonitor listener = new SentenceEvaluationErrorListener(stream);
+		Assert.assertEquals(0, stream.toString().length());
+	}
 
-    SentenceDetectorEvaluator eval = new SentenceDetectorEvaluator(new DummySD(
-        SentenceSampleTest.createGoldSample()), listener);
+	@Test
+	public void testNegative() throws InvalidFormatException {
+		OutputStream stream = new ByteArrayOutputStream();
+		SentenceDetectorEvaluationMonitor listener = new SentenceEvaluationErrorListener(stream);
 
-    eval.evaluateSample(SentenceSampleTest.createPredSample());
+		SentenceDetectorEvaluator eval = new SentenceDetectorEvaluator(
+				mockSentenceDetector1(SentenceSampleTest.createGoldSample()), listener);
 
-    Assert.assertEquals(-1.0, eval.getFMeasure().getFMeasure(), .1d);
+		eval.evaluateSample(SentenceSampleTest.createPredSample());
 
-    Assert.assertNotSame(0, stream.toString().length());
-  }
+		Assert.assertEquals(-1.0, eval.getFMeasure().getFMeasure(), .1d);
 
-
-  /**
-   * a dummy sentence detector that always return something expected
-   */
-  class DummySD implements SentenceDetector {
-
-    private SentenceSample sample;
-
-    public DummySD(SentenceSample sample) {
-      this.sample = sample;
-    }
-
-    public String[] sentDetect(String s) {
-      return null;
-    }
-
-    public Span[] sentPosDetect(String s) {
-      return sample.getSentences();
-    }
-
-  }
+		Assert.assertNotSame(0, stream.toString().length());
+	}
 }

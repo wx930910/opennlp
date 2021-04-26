@@ -28,29 +28,29 @@ import opennlp.tools.util.ObjectStream;
 
 public class ConlluStreamTest {
 
-  @Test
-  public void testParseTwoSentences() throws IOException {
+	@Test
+	public void testParseTwoSentences() throws IOException {
 
-    InputStreamFactory streamFactory =
-        new ResourceAsStreamFactory(ConlluStreamTest.class, "de-ud-train-sample.conllu");
+		InputStreamFactory streamFactory = ResourceAsStreamFactory.mockInputStreamFactory1(ConlluStreamTest.class,
+				"de-ud-train-sample.conllu");
 
-    try (ObjectStream<ConlluSentence> stream = new ConlluStream(streamFactory)) {
-      ConlluSentence sent1 = stream.read();
+		try (ObjectStream<ConlluSentence> stream = new ConlluStream(streamFactory)) {
+			ConlluSentence sent1 = stream.read();
 
-      Assert.assertEquals("train-s21", sent1.getSentenceIdComment());
-      Assert.assertEquals("Fachlich kompetent, sehr gute Beratung und ein freundliches Team.",
-          sent1.getTextComment());
-      Assert.assertEquals(11, sent1.getWordLines().size());
+			Assert.assertEquals("train-s21", sent1.getSentenceIdComment());
+			Assert.assertEquals("Fachlich kompetent, sehr gute Beratung und ein freundliches Team.",
+					sent1.getTextComment());
+			Assert.assertEquals(11, sent1.getWordLines().size());
 
-      ConlluSentence sent2 = stream.read();
+			ConlluSentence sent2 = stream.read();
 
-      Assert.assertEquals("train-s22", sent2.getSentenceIdComment());
-      Assert.assertEquals(
-          "Beiden Zahnärzten verdanke ich einen neuen Biss und dadurch endlich keine Rückenschmerzen mehr.",
-          sent2.getTextComment());
-      Assert.assertEquals(14, sent2.getWordLines().size());
+			Assert.assertEquals("train-s22", sent2.getSentenceIdComment());
+			Assert.assertEquals(
+					"Beiden Zahnärzten verdanke ich einen neuen Biss und dadurch endlich keine Rückenschmerzen mehr.",
+					sent2.getTextComment());
+			Assert.assertEquals(14, sent2.getWordLines().size());
 
-      Assert.assertNull("Stream must be exhausted", stream.read());
-    }
-  }
+			Assert.assertNull("Stream must be exhausted", stream.read());
+		}
+	}
 }

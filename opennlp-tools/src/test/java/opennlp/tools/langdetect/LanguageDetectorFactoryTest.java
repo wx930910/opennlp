@@ -17,7 +17,6 @@
 
 package opennlp.tools.langdetect;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,62 +29,61 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import opennlp.tools.formats.ResourceAsStreamFactory;
+import opennlp.tools.util.InputStreamFactory;
 import opennlp.tools.util.PlainTextByLineStream;
 import opennlp.tools.util.TrainingParameters;
 
 public class LanguageDetectorFactoryTest {
 
+	private static LanguageDetectorModel model;
 
-  private static LanguageDetectorModel model;
+	@BeforeClass
+	public static void train() throws Exception {
 
-  @BeforeClass
-  public static void train() throws Exception {
+		InputStreamFactory streamFactory = ResourceAsStreamFactory.mockInputStreamFactory1(LanguageDetectorMETest.class,
+				"/opennlp/tools/doccat/DoccatSample.txt");
 
-    ResourceAsStreamFactory streamFactory = new ResourceAsStreamFactory(
-        LanguageDetectorMETest.class, "/opennlp/tools/doccat/DoccatSample.txt");
+		PlainTextByLineStream lineStream = new PlainTextByLineStream(streamFactory, StandardCharsets.UTF_8);
 
-    PlainTextByLineStream lineStream = new PlainTextByLineStream(streamFactory, StandardCharsets.UTF_8);
+		LanguageDetectorSampleStream sampleStream = new LanguageDetectorSampleStream(lineStream);
 
-    LanguageDetectorSampleStream sampleStream = new LanguageDetectorSampleStream(lineStream);
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, "100");
+		params.put(TrainingParameters.CUTOFF_PARAM, "5");
+		params.put(TrainingParameters.ALGORITHM_PARAM, "NAIVEBAYES");
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, "100");
-    params.put(TrainingParameters.CUTOFF_PARAM, "5");
-    params.put(TrainingParameters.ALGORITHM_PARAM, "NAIVEBAYES");
+		model = LanguageDetectorME.train(sampleStream, params, new DummyFactory());
+	}
 
-    model = LanguageDetectorME.train(sampleStream, params, new DummyFactory());
-  }
+	@Test
+	public void testCorrectFactory() throws IOException {
+		byte[] serialized = LanguageDetectorMETest.serializeModel(model);
 
-  @Test
-  public void testCorrectFactory() throws IOException {
-    byte[] serialized = LanguageDetectorMETest.serializeModel(model);
+		LanguageDetectorModel myModel = new LanguageDetectorModel(new ByteArrayInputStream(serialized));
 
-    LanguageDetectorModel myModel = new LanguageDetectorModel(new ByteArrayInputStream(serialized));
+		Assert.assertTrue(myModel.getFactory() instanceof DummyFactory);
 
-    Assert.assertTrue(myModel.getFactory() instanceof DummyFactory);
+	}
 
-  }
+	@Test
+	public void testDummyFactory() throws Exception {
+		byte[] serialized = LanguageDetectorMETest.serializeModel(model);
 
-  @Test
-  public void testDummyFactory() throws Exception {
-    byte[] serialized = LanguageDetectorMETest.serializeModel(model);
+		LanguageDetectorModel myModel = new LanguageDetectorModel(new ByteArrayInputStream(serialized));
 
-    LanguageDetectorModel myModel = new LanguageDetectorModel(new ByteArrayInputStream(serialized));
+		Assert.assertTrue(myModel.getFactory() instanceof DummyFactory);
+	}
 
-    Assert.assertTrue(myModel.getFactory() instanceof DummyFactory);
-  }
+	@Test
+	public void testDummyFactoryContextGenerator() throws Exception {
+		LanguageDetectorContextGenerator cg = model.getFactory().getContextGenerator();
+		String[] context = cg.getContext("a dummy text phrase to test if the context generator works!!!!!!!!!!!!");
 
-  @Test
-  public void testDummyFactoryContextGenerator() throws Exception {
-    LanguageDetectorContextGenerator cg = model.getFactory().getContextGenerator();
-    String[] context = cg.getContext(
-        "a dummy text phrase to test if the context generator works!!!!!!!!!!!!");
+		Set<String> set = new HashSet(Arrays.asList(context));
 
-    Set<String> set = new HashSet(Arrays.asList(context));
-
-    Assert.assertTrue(set.contains("!!!!!")); // default normalizer would remove the repeated !
-    Assert.assertTrue(set.contains("a dum"));
-    Assert.assertTrue(set.contains("tg=[THE,CONTEXT,GENERATOR]"));
-  }
+		Assert.assertTrue(set.contains("!!!!!")); // default normalizer would remove the repeated !
+		Assert.assertTrue(set.contains("a dum"));
+		Assert.assertTrue(set.contains("tg=[THE,CONTEXT,GENERATOR]"));
+	}
 
 }

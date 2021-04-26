@@ -43,86 +43,84 @@ import opennlp.tools.util.TrainingParameters;
 
 public class TokenNameFinderToolTest {
 
-  @Test
-  public void run() throws IOException {
+	@Test
+	public void run() throws IOException {
 
-    File model1 = trainModel();
+		File model1 = trainModel();
 
-    String[] args = new String[]{model1.getAbsolutePath()};
-    
-    final String in = "It is Stefanie Schmidt.\n\nNothing in this sentence.";
-    InputStream stream = new ByteArrayInputStream(in.getBytes(StandardCharsets.UTF_8));
-    
-    System.setIn(stream);
-    
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(baos);
-    System.setOut(ps);
+		String[] args = new String[] { model1.getAbsolutePath() };
 
-    TokenNameFinderTool tool = new TokenNameFinderTool();
-    tool.run(args);
-    
-    final String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-    Assert.assertTrue(content.contains("It is <START:person> Stefanie Schmidt. <END>"));
+		final String in = "It is Stefanie Schmidt.\n\nNothing in this sentence.";
+		InputStream stream = new ByteArrayInputStream(in.getBytes(StandardCharsets.UTF_8));
 
-    model1.delete();
-  }
-  
-  @Test(expected = TerminateToolException.class)
-  public void invalidModel() {
+		System.setIn(stream);
 
-    String[] args = new String[]{"invalidmodel.bin"};
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		System.setOut(ps);
 
-    TokenNameFinderTool tool = new TokenNameFinderTool();
-    tool.run(args);
+		TokenNameFinderTool tool = new TokenNameFinderTool();
+		tool.run(args);
 
-  }
-  
-  @Test()
-  public void usage() {
+		final String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+		Assert.assertTrue(content.contains("It is <START:person> Stefanie Schmidt. <END>"));
 
-    String[] args = new String[]{};
-    
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(baos);
-    System.setOut(ps);
+		model1.delete();
+	}
 
-    TokenNameFinderTool tool = new TokenNameFinderTool();
-    tool.run(args);
+	@Test(expected = TerminateToolException.class)
+	public void invalidModel() {
 
-    final String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-    Assert.assertEquals(tool.getHelp(), content.trim());
-    
-  }
-  
-  private File trainModel() throws IOException {
+		String[] args = new String[] { "invalidmodel.bin" };
 
-    ObjectStream<String> lineStream =
-        new PlainTextByLineStream(new MockInputStreamFactory(
-            new File("opennlp/tools/namefind/AnnotatedSentencesWithTypes.txt")),
-            StandardCharsets.ISO_8859_1);
+		TokenNameFinderTool tool = new TokenNameFinderTool();
+		tool.run(args);
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, 70);
-    params.put(TrainingParameters.CUTOFF_PARAM, 1);
-    
-    TokenNameFinderModel model;
+	}
 
-    TokenNameFinderFactory nameFinderFactory = new TokenNameFinderFactory();
+	@Test()
+	public void usage() {
 
-    try (ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream)) {
-      model = NameFinderME.train("eng", null, sampleStream, params,
-          nameFinderFactory);
-    }
-    
-    File modelFile = File.createTempFile("model", ".bin");
-    
-    try (BufferedOutputStream modelOut =
-             new BufferedOutputStream(new FileOutputStream(modelFile))) {
-      model.serialize(modelOut);
-    }
-    
-    return modelFile;
-  }
-  
+		String[] args = new String[] {};
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		System.setOut(ps);
+
+		TokenNameFinderTool tool = new TokenNameFinderTool();
+		tool.run(args);
+
+		final String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+		Assert.assertEquals(tool.getHelp(), content.trim());
+
+	}
+
+	private File trainModel() throws IOException {
+
+		ObjectStream<String> lineStream = new PlainTextByLineStream(
+				MockInputStreamFactory
+						.mockInputStreamFactory2(new File("opennlp/tools/namefind/AnnotatedSentencesWithTypes.txt")),
+				StandardCharsets.ISO_8859_1);
+
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, 70);
+		params.put(TrainingParameters.CUTOFF_PARAM, 1);
+
+		TokenNameFinderModel model;
+
+		TokenNameFinderFactory nameFinderFactory = new TokenNameFinderFactory();
+
+		try (ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream)) {
+			model = NameFinderME.train("eng", null, sampleStream, params, nameFinderFactory);
+		}
+
+		File modelFile = File.createTempFile("model", ".bin");
+
+		try (BufferedOutputStream modelOut = new BufferedOutputStream(new FileOutputStream(modelFile))) {
+			model.serialize(modelOut);
+		}
+
+		return modelFile;
+	}
+
 }

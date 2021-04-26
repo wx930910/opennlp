@@ -41,69 +41,65 @@ import opennlp.tools.util.eval.FMeasure;
  */
 public class DictionaryNameFinderEvaluatorTest {
 
-  @Test
-  public void testEvaluator() throws IOException, URISyntaxException {
-    DictionaryNameFinder nameFinder = new DictionaryNameFinder(
-        createDictionary());
-    TokenNameFinderEvaluator evaluator = new TokenNameFinderEvaluator(
-        nameFinder, new NameEvaluationErrorListener());
-    ObjectStream<NameSample> sample = createSample();
+	@Test
+	public void testEvaluator() throws IOException, URISyntaxException {
+		DictionaryNameFinder nameFinder = new DictionaryNameFinder(createDictionary());
+		TokenNameFinderEvaluator evaluator = new TokenNameFinderEvaluator(nameFinder,
+				new NameEvaluationErrorListener());
+		ObjectStream<NameSample> sample = createSample();
 
-    evaluator.evaluate(sample);
-    sample.close();
-    FMeasure fmeasure = evaluator.getFMeasure();
+		evaluator.evaluate(sample);
+		sample.close();
+		FMeasure fmeasure = evaluator.getFMeasure();
 
-    Assert.assertTrue(fmeasure.getFMeasure() == 1);
-    Assert.assertTrue(fmeasure.getRecallScore() == 1);
-  }
+		Assert.assertTrue(fmeasure.getFMeasure() == 1);
+		Assert.assertTrue(fmeasure.getRecallScore() == 1);
+	}
 
-  /**
-   * Creates a NameSample stream using an annotated corpus
-   *
-   * @return
-   * @throws IOException
-   * @throws URISyntaxException
-   */
-  private static ObjectStream<NameSample> createSample() throws IOException,
-      URISyntaxException {
+	/**
+	 * Creates a NameSample stream using an annotated corpus
+	 *
+	 * @return
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	private static ObjectStream<NameSample> createSample() throws IOException, URISyntaxException {
 
-    InputStreamFactory in = new ResourceAsStreamFactory(
-        DictionaryNameFinderEvaluatorTest.class,
-        "/opennlp/tools/namefind/AnnotatedSentences.txt");
+		InputStreamFactory in = ResourceAsStreamFactory.mockInputStreamFactory1(DictionaryNameFinderEvaluatorTest.class,
+				"/opennlp/tools/namefind/AnnotatedSentences.txt");
 
-    return new NameSampleDataStream(new PlainTextByLineStream(in, StandardCharsets.ISO_8859_1));
-  }
+		return new NameSampleDataStream(new PlainTextByLineStream(in, StandardCharsets.ISO_8859_1));
+	}
 
-  /**
-   * Creates a dictionary with all names from the sample data.
-   *
-   * @return a dictionary
-   * @throws IOException
-   * @throws URISyntaxException
-   */
-  private static Dictionary createDictionary() throws IOException,
-      URISyntaxException {
-    ObjectStream<NameSample> sampleStream = createSample();
-    NameSample sample = sampleStream.read();
-    List<String[]> entries = new ArrayList<>();
-    while (sample != null) {
-      Span[] names = sample.getNames();
-      if (names != null && names.length > 0) {
-        String[] toks = sample.getSentence();
-        for (Span name : names) {
-          String[] nameToks = new String[name.length()];
-          System.arraycopy(toks, name.getStart(), nameToks, 0, name.length());
-          entries.add(nameToks);
-        }
-      }
-      sample = sampleStream.read();
-    }
-    sampleStream.close();
-    Dictionary dictionary = new Dictionary(true);
-    for (String[] entry : entries) {
-      StringList dicEntry = new StringList(entry);
-      dictionary.put(dicEntry);
-    }
-    return dictionary;
-  }
+	/**
+	 * Creates a dictionary with all names from the sample data.
+	 *
+	 * @return a dictionary
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	private static Dictionary createDictionary() throws IOException, URISyntaxException {
+		ObjectStream<NameSample> sampleStream = createSample();
+		NameSample sample = sampleStream.read();
+		List<String[]> entries = new ArrayList<>();
+		while (sample != null) {
+			Span[] names = sample.getNames();
+			if (names != null && names.length > 0) {
+				String[] toks = sample.getSentence();
+				for (Span name : names) {
+					String[] nameToks = new String[name.length()];
+					System.arraycopy(toks, name.getStart(), nameToks, 0, name.length());
+					entries.add(nameToks);
+				}
+			}
+			sample = sampleStream.read();
+		}
+		sampleStream.close();
+		Dictionary dictionary = new Dictionary(true);
+		for (String[] entry : entries) {
+			StringList dicEntry = new StringList(entry);
+			dictionary.put(dicEntry);
+		}
+		return dictionary;
+	}
 }

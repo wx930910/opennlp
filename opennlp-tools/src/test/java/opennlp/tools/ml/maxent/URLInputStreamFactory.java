@@ -17,23 +17,27 @@
 
 package opennlp.tools.ml.maxent;
 
-import java.io.IOException;
-import java.io.InputStream;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.net.URL;
 
 import opennlp.tools.util.InputStreamFactory;
 
-public class URLInputStreamFactory implements InputStreamFactory {
+public class URLInputStreamFactory {
 
-
-  private URL url;
-  public URLInputStreamFactory(URL url) {
-    this.url = url;
-  }
-  
-  @Override
-  public InputStream createInputStream() throws IOException {
-    return url.openStream();
-  }
+	public static InputStreamFactory mockInputStreamFactory1(URL url) {
+		URL mockFieldVariableUrl;
+		InputStreamFactory mockInstance = mock(InputStreamFactory.class);
+		mockFieldVariableUrl = url;
+		try {
+			when(mockInstance.createInputStream()).thenAnswer((stubInvo) -> {
+				return mockFieldVariableUrl.openStream();
+			});
+		} catch (Throwable exception) {
+			exception.printStackTrace();
+		}
+		return mockInstance;
+	}
 
 }

@@ -17,24 +17,28 @@
 
 package opennlp.tools.formats;
 
-import java.io.IOException;
-import java.io.InputStream;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.Objects;
 
 import opennlp.tools.util.InputStreamFactory;
 
-public class ResourceAsStreamFactory implements InputStreamFactory {
+public class ResourceAsStreamFactory {
 
-  private Class<?> clazz;
-  private String name;
-
-  public ResourceAsStreamFactory(Class<?> clazz, String name) {
-    this.clazz = Objects.requireNonNull(clazz, "callz must not be null");
-    this.name = Objects.requireNonNull(name, "name must not be null");
-  }
-
-  @Override
-  public InputStream createInputStream() throws IOException {
-    return clazz.getResourceAsStream(name);
-  }
+	public static InputStreamFactory mockInputStreamFactory1(Class<?> clazz, String name) {
+		Class<?> mockFieldVariableClazz;
+		String mockFieldVariableName;
+		InputStreamFactory mockInstance = mock(InputStreamFactory.class);
+		mockFieldVariableClazz = Objects.requireNonNull(clazz, "callz must not be null");
+		mockFieldVariableName = Objects.requireNonNull(name, "name must not be null");
+		try {
+			when(mockInstance.createInputStream()).thenAnswer((stubInvo) -> {
+				return mockFieldVariableClazz.getResourceAsStream(mockFieldVariableName);
+			});
+		} catch (Throwable exception) {
+			exception.printStackTrace();
+		}
+		return mockInstance;
+	}
 }

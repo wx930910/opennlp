@@ -29,65 +29,64 @@ import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.Span;
 
 /**
- * Note:
- * Sample training data must be UTF-8 encoded and uncompressed!
+ * Note: Sample training data must be UTF-8 encoded and uncompressed!
  */
 public class Conll02NameSampleStreamTest {
 
-  private static ObjectStream<NameSample> openData(LANGUAGE lang, String name) throws IOException {
-    InputStreamFactory in = new ResourceAsStreamFactory(Conll02NameSampleStreamTest.class,
-        "/opennlp/tools/formats/" + name);
+	private static ObjectStream<NameSample> openData(LANGUAGE lang, String name) throws IOException {
+		InputStreamFactory in = ResourceAsStreamFactory.mockInputStreamFactory1(Conll02NameSampleStreamTest.class,
+				"/opennlp/tools/formats/" + name);
 
-    return new Conll02NameSampleStream(lang, in, Conll02NameSampleStream.GENERATE_PERSON_ENTITIES);
-  }
+		return new Conll02NameSampleStream(lang, in, Conll02NameSampleStream.GENERATE_PERSON_ENTITIES);
+	}
 
-  @Test
-  public void testParsingSpanishSample() throws IOException {
+	@Test
+	public void testParsingSpanishSample() throws IOException {
 
-    ObjectStream<NameSample> sampleStream = openData(LANGUAGE.SPA, "conll2002-es.sample");
+		ObjectStream<NameSample> sampleStream = openData(LANGUAGE.SPA, "conll2002-es.sample");
 
-    NameSample personName = sampleStream.read();
+		NameSample personName = sampleStream.read();
 
-    Assert.assertNotNull(personName);
+		Assert.assertNotNull(personName);
 
-    Assert.assertEquals(5, personName.getSentence().length);
-    Assert.assertEquals(1, personName.getNames().length);
-    Assert.assertEquals(true, personName.isClearAdaptiveDataSet());
+		Assert.assertEquals(5, personName.getSentence().length);
+		Assert.assertEquals(1, personName.getNames().length);
+		Assert.assertEquals(true, personName.isClearAdaptiveDataSet());
 
-    Span nameSpan = personName.getNames()[0];
-    Assert.assertEquals(0, nameSpan.getStart());
-    Assert.assertEquals(4, nameSpan.getEnd());
-    Assert.assertEquals(true, personName.isClearAdaptiveDataSet());
+		Span nameSpan = personName.getNames()[0];
+		Assert.assertEquals(0, nameSpan.getStart());
+		Assert.assertEquals(4, nameSpan.getEnd());
+		Assert.assertEquals(true, personName.isClearAdaptiveDataSet());
 
-    Assert.assertEquals(0, sampleStream.read().getNames().length);
+		Assert.assertEquals(0, sampleStream.read().getNames().length);
 
-    Assert.assertNull(sampleStream.read());
-  }
+		Assert.assertNull(sampleStream.read());
+	}
 
-  @Test
-  public void testParsingDutchSample() throws IOException {
-    ObjectStream<NameSample> sampleStream = openData(LANGUAGE.NLD, "conll2002-nl.sample");
+	@Test
+	public void testParsingDutchSample() throws IOException {
+		ObjectStream<NameSample> sampleStream = openData(LANGUAGE.NLD, "conll2002-nl.sample");
 
-    NameSample personName = sampleStream.read();
+		NameSample personName = sampleStream.read();
 
-    Assert.assertEquals(0, personName.getNames().length);
-    Assert.assertTrue(personName.isClearAdaptiveDataSet());
+		Assert.assertEquals(0, personName.getNames().length);
+		Assert.assertTrue(personName.isClearAdaptiveDataSet());
 
-    personName = sampleStream.read();
+		personName = sampleStream.read();
 
-    Assert.assertFalse(personName.isClearAdaptiveDataSet());
+		Assert.assertFalse(personName.isClearAdaptiveDataSet());
 
-    Assert.assertNull(sampleStream.read());
-  }
+		Assert.assertNull(sampleStream.read());
+	}
 
-  @Test
-  public void testReset() throws IOException {
-    ObjectStream<NameSample> sampleStream = openData(LANGUAGE.NLD, "conll2002-nl.sample");
+	@Test
+	public void testReset() throws IOException {
+		ObjectStream<NameSample> sampleStream = openData(LANGUAGE.NLD, "conll2002-nl.sample");
 
-    NameSample sample = sampleStream.read();
+		NameSample sample = sampleStream.read();
 
-    sampleStream.reset();
+		sampleStream.reset();
 
-    Assert.assertEquals(sample, sampleStream.read());
-  }
+		Assert.assertEquals(sample, sampleStream.read());
+	}
 }

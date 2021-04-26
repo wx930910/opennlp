@@ -48,58 +48,57 @@ import opennlp.tools.util.TrainingParameters;
  */
 public class LemmatizerMETest {
 
-  private LemmatizerME lemmatizer;
+	private LemmatizerME lemmatizer;
 
-  private static String[] tokens = { "Rockwell", "said", "the", "agreement", "calls", "for",
-      "it", "to", "supply", "200", "additional", "so-called", "shipsets", "for",
-      "the", "planes", "." };
+	private static String[] tokens = { "Rockwell", "said", "the", "agreement", "calls", "for", "it", "to", "supply",
+			"200", "additional", "so-called", "shipsets", "for", "the", "planes", "." };
 
-  private static String[] postags = { "NNP", "VBD", "DT", "NN", "VBZ", "IN", "PRP", "TO", "VB",
-      "CD", "JJ", "JJ", "NNS", "IN", "DT", "NNS", "." };
+	private static String[] postags = { "NNP", "VBD", "DT", "NN", "VBZ", "IN", "PRP", "TO", "VB", "CD", "JJ", "JJ",
+			"NNS", "IN", "DT", "NNS", "." };
 
-  private static String[] expect = { "rockwell", "say", "the", "agreement", "call", "for",
-      "it", "to", "supply", "200", "additional", "so-called", "shipset", "for",
-      "the", "plane", "." };
+	private static String[] expect = { "rockwell", "say", "the", "agreement", "call", "for", "it", "to", "supply",
+			"200", "additional", "so-called", "shipset", "for", "the", "plane", "." };
 
-  @Before
-  public void startup() throws IOException {
-    // train the lemmatizer
+	@Before
+	public void startup() throws IOException {
+		// train the lemmatizer
 
-    ObjectStream<LemmaSample> sampleStream = new LemmaSampleStream(
-        new PlainTextByLineStream(new MockInputStreamFactory(
-          new File("opennlp/tools/lemmatizer/trial.old.tsv")), StandardCharsets.UTF_8));
+		ObjectStream<LemmaSample> sampleStream = new LemmaSampleStream(new PlainTextByLineStream(
+				MockInputStreamFactory.mockInputStreamFactory2(new File("opennlp/tools/lemmatizer/trial.old.tsv")),
+				StandardCharsets.UTF_8));
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, 100);
-    params.put(TrainingParameters.CUTOFF_PARAM, 5);
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, 100);
+		params.put(TrainingParameters.CUTOFF_PARAM, 5);
 
-    LemmatizerModel lemmatizerModel = LemmatizerME.train("eng", sampleStream,
-        params, new LemmatizerFactory());
+		LemmatizerModel lemmatizerModel = LemmatizerME.train("eng", sampleStream, params, new LemmatizerFactory());
 
-    this.lemmatizer = new LemmatizerME(lemmatizerModel);
-  }
+		this.lemmatizer = new LemmatizerME(lemmatizerModel);
+	}
 
-  @Test
-  public void testLemmasAsArray() throws Exception {
+	@Test
+	public void testLemmasAsArray() throws Exception {
 
-    String[] lemmas = lemmatizer.lemmatize(tokens, postags);
+		String[] lemmas = lemmatizer.lemmatize(tokens, postags);
 
-    Assert.assertArrayEquals(expect, lemmas);
-  }
-  
-  @Test(expected = InsufficientTrainingDataException.class)
-  public void testInsufficientData() throws IOException {
- 
-    ObjectStream<LemmaSample> sampleStream = new LemmaSampleStream(
-        new PlainTextByLineStream(new MockInputStreamFactory(
-            new File("opennlp/tools/lemmatizer/trial.old-insufficient.tsv")), StandardCharsets.UTF_8));
+		Assert.assertArrayEquals(expect, lemmas);
+	}
 
-    TrainingParameters params = new TrainingParameters();
-    params.put(TrainingParameters.ITERATIONS_PARAM, 100);
-    params.put(TrainingParameters.CUTOFF_PARAM, 5);
+	@Test(expected = InsufficientTrainingDataException.class)
+	public void testInsufficientData() throws IOException {
 
-    LemmatizerME.train("eng", sampleStream, params, new LemmatizerFactory());
+		ObjectStream<LemmaSample> sampleStream = new LemmaSampleStream(
+				new PlainTextByLineStream(
+						MockInputStreamFactory.mockInputStreamFactory2(
+								new File("opennlp/tools/lemmatizer/trial.old-insufficient.tsv")),
+						StandardCharsets.UTF_8));
 
-  }
+		TrainingParameters params = new TrainingParameters();
+		params.put(TrainingParameters.ITERATIONS_PARAM, 100);
+		params.put(TrainingParameters.CUTOFF_PARAM, 5);
+
+		LemmatizerME.train("eng", sampleStream, params, new LemmatizerFactory());
+
+	}
 
 }
